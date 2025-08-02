@@ -1,5 +1,5 @@
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('forms.html');
+  return HtmlService.createHtmlOutputFromFile('index.html');
 }
 
 function getOAuthToken() {
@@ -31,6 +31,11 @@ function createOrGetFolder(folderName, parentFolderId) {
     return error;
   }
 }
+
+
+// This commented line is used for enabling Drive API and adding a scope of "https://www.googleapis.com/auth/drive".
+// So please don't remove this.
+// DriveApp.createFile();
 
 // NOTE: always make sure we use DriveApp, even if it's in a comment, for google to import those
 // libraries and allow the rest of the app to work. see https://github.com/tanaikech/Resumable_Upload_For_WebApps
