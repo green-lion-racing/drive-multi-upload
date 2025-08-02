@@ -3,7 +3,6 @@
   <head>
     <base target="_blank">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Drive Multi Large File Upload</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css">
     <style>
@@ -69,7 +68,7 @@
     <script>
 
       const chunkSize = 5242880;
-      const uploadParentFolderId = "1nDP4ulAN38AZyB31NISvv2_hIDFW-NnB"; // creates a folder inside of this folder
+      const uploadParentFolderId = "1_fNwHfBj4IJu5_gkoz5JU3-9q73jhkjt"; // creates a folder inside of this folder
 
       function submitForm() {
 
@@ -118,6 +117,7 @@
             fr.fileName = file.name;
             fr.fileSize = file.size;
             fr.fileType = file.type;
+            fr.fileLastModified = file.lastModified;
             // not sure of a better way of passing the promise functions down
             fr.resolve = () => resolve();
             fr.reject = (error) => reject(error);
@@ -178,7 +178,10 @@
           var fileName = fr.fileName;
           var fileSize = fr.fileSize;
           var fileType = fr.fileType;
-          console.log({fileName: fileName, fileSize: fileSize, fileType: fileType});
+          var fileLastModified = fr.fileLastModified;
+          const date = new Date(fileLastModified);
+          const isoString = date.toISOString();
+          console.log({fileName: fileName, fileSize: fileSize, fileType: fileType, fileLastModified: fileLastModified, isoString: isoString});
           var buf = fr.result;
           var chunkpot = getChunkpot(chunkSize, fileSize);
           var uint8Array = new Uint8Array(buf);
@@ -197,6 +200,7 @@
             xhr.send(JSON.stringify({
               mimeType: fileType,
               name: fileName,
+              modifiedTime: isoString,
               parents: [parentFolderId]
             }));
             xhr.onload = () => {

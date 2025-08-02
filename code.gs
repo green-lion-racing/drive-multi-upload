@@ -1,5 +1,8 @@
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('index.html');
+  return HtmlService
+  .createHtmlOutputFromFile('index.html')
+  .setTitle("Drive Multi Large File Upload")
+  .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function getOAuthToken() {
