@@ -12,9 +12,8 @@ This form came from a need to provide an easy way for someone to upload large fi
 
 1. Validate the form.
 2. All files are loaded into the browser.
-3. Using the hardcoded `uploadParentFolderId` id, find that folder.
-4. As a child of this folder check if a folder with the name you entered exists. If it exists the code reuses that folder. If it doesn't already exist it creates a new folder with that name.
-5. Divides the files up into chunks that can be sent one at a time to the server. Update the % updated display with progress.
+3. Using the hardcoded `uploadParentFolderId` to create a subfolder based on the provided name.
+4. Divides the files up into chunks that can be sent one at a time to the server. Update the % updated display with progress.
 
 ## Getting Started
 This form is made up of two files: `index.html`, and `code.gs`. Follow these steps to run them:
@@ -23,10 +22,12 @@ This form is made up of two files: `index.html`, and `code.gs`. Follow these ste
 3. Paste the contents of `code.gs` into the `code.gs` file that opens up.
 4. Click "File" -> "New" -> "HTML file" and name it `index.html`.
 5. Copy the contents of `index.html` into the newly created `index.html`.
+6. Change `uploadParentFolderId` variable to a folder id from your google drive.
 6. Deploy your code by going to "Publish" -> "Deploy as web app...".
 7. Leave the defaults or modify them as you please.
-8. Authorize the app by Reviewing Permissions and allowing this script to modify your google drive. (If you see a "BACK TO SAFETY" button you should click "Advanced", then the link that says "unsafe").
+8. Authorize the app by reviewing Permissions and allowing this script to modify your google drive. (If you see a "BACK TO SAFETY" button you should click "Advanced", then the link that says "unsafe").
 9. Click on the "latest code" link to view the form. (you can always find this link again by going to "Publish" -> "Deploy as web app..." and clicking on the "latest code" link there).
+10. Use the deploy link in an iframe to get rid of the message "This application was created by a Google Apps Script user".
 
 ## Acknowledgements
 This form was mostly put together from work found in the following resources:
