@@ -273,7 +273,7 @@
          * Adds one or multiple files to selectedFiles
          */
         function addFiles(files) {
-            selectedFiles = Array.from(files);
+            selectedFiles.push(...Array.from(files));
             totalFilesSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
             
             updateFileList();
