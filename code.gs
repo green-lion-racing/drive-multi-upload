@@ -1,7 +1,7 @@
 function doGet(e) {
   return HtmlService
   .createHtmlOutputFromFile('index.html')
-  .setTitle("Drive Multi Large File Upload")
+  .setTitle("Drive Multi Upload")
   .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
@@ -9,32 +9,20 @@ function getOAuthToken() {
   return ScriptApp.getOAuthToken();
 }
 
+
 /**
-* creates a folder under a parent folder, and returns it's id. If the folder already exists
-* then it is not created and it simply returns the id of the existing one
+* creates a folder under a parent folder, and returns the id.
 */
-function createOrGetFolder(folderName, parentFolderId) {
-  try {
-    var foldersIter = DriveApp.getFoldersByName(folderName),
-      parentFolder = DriveApp.getFolderById(parentFolderId),
-      folder;
+function createFolder(folderName, parentFolderId) {
+  parentFolder = DriveApp.getFolderById(parentFolderId);
 
-    if (parentFolder) {
-      if (foldersIter.hasNext()) {
-        folder = foldersIter.next();
-      } else {
-        folder = parentFolder.createFolder(folderName);
-      }
-    } else {
-      throw new Error("Parent Folder with id: " + parentFolderId + " not found");
-    }
-
+  if (parentFolder) {
+    folder = parentFolder.createFolder(folderName);
     return folder.getId();
-  } catch (error) {
-    return error;
+  } else {
+    return new Error("Parent Folder with id: " + parentFolderId + " not found");
   }
 }
-
 
 // This commented line is used for enabling Drive API and adding a scope of "https://www.googleapis.com/auth/drive".
 // So please don't remove this.

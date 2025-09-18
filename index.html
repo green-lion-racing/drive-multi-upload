@@ -1,329 +1,669 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_blank">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/gh/tanaikech/ResumableUploadForGoogleDrive_js@master/resumableupload_js.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css">
     <style>
-      .disclaimer{width: 480px; color:#646464;margin:20px auto;padding:0 16px;text-align:center;font:400 12px Roboto,Helvetica,Arial,sans-serif}.disclaimer a{color:#009688}#credit{display:none}
+        .dropzone {
+            border: 2px dashed #e2e8f0;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+        .dropzone.active, .dropzone:hover {
+            border-color: #4f46e5;
+            background-color: #f5f3ff;
+        }
+        .dropzone:active {
+            transform: scale(0.98);
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        [id^="file-progress-"] {
+            transition: width 0.3s ease;
+        }
+        .file-item:hover .file-actions,
+        .file-item .file-actions:focus-within {
+            opacity: 1;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+        .lang-toggle-container {
+            position: relative;
+            width: 68px;
+            height: 32px;
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .lang-toggle-container::after {
+            content: '';
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            left: 0px;
+            top: 0;
+            z-index: 0;
+            transition: transform 0.3s ease;
+        }
+        .lang-toggle-container.en::after {
+            transform: translateX(36px);
+        }
+        .lang-button {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1;
+            background: transparent;
+            transition: color 0.3s ease;
+        }
+        .lang-button.active {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .lang-button.inactive {
+            color: rgba(255,255,255,0.7);
+        }
+        #langDE {
+            left: 0;
+        }
+        #langEN {
+            right: 0;
+        }
     </style>
-  </head>
-  <body>
-    <form class="main" id="form" novalidate="novalidate" style="max-width: 480px;margin: 40px auto;">
-      <div id="forminner">
-        <div class="row">
-          <div class="col s12">
-            <h5 class="center-align teal-text">Google Drive Multi Large File Upload Form</h5>
-            <p class="disclaimer">Use this form to upload all files to a new folder with a given name.</p>
-          </div>
-        </div>
-        <div class="row">
-          <div class="input-field col s12">
-            <input id="name" type="text" name="Name" class="validate" required="required" aria-required="true">
-            <label for="name">Name of Upload Folder</label>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="file-field input-field col s12">
-            <div id="input-btn" class="btn">
-              <span>File(s)</span>
-              <input id="files" type="file" multiple>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <form class="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 p-6 text-white">
+            <div class="flex items-center space-x-4">
+                <div class="bg-white/20 p-1.5 rounded-lg h-9 flex items-center justify-center">
+                    <div class="material-icons text-white">cloud_upload</div>
+                </div>
+                <div class="flex-grow">
+                    <h1 class="text-2xl font-semibold">Drive Mutli Upload</h1>
+                    <p class="text-indigo-100 text-sm mt-1">Upload files to Google Drive</p>
+                </div>
+                <div class="lang-toggle-container en" onclick="toggleLanguage()">
+                    <button id="langDE" class="lang-button active hovered-element">🇩🇪</button>
+                    <button id="langEN" class="lang-button inactive hovered-element">🇬🇧</button>
+                </div>
             </div>
-            <div class="file-path-wrapper">
-              <input class="file-path validate" type="text" placeholder="Select one or more files">
+        </div>
+        
+        <!-- Main Form -->
+        <div class="p-6" id="forminner">
+            <div class="mb-6" id="folderInput">
+                <div class="relative">
+                    <input type="text" id="folderName" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                           placeholder="Enter folder name">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <span class="material-icons text-gray-400">folder</span>
+                    </div>
+                </div>
+                <div id="folderError" class="text-red-500 text-sm mt-1 hidden"></div>
             </div>
-          </div>
+            
+            <!-- Dropzone -->
+            <div class="mb-1">
+                <button id="dropzone" type="button" class="w-full dropzone rounded-lg p-8 text-center mb-1 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <input type="file" id="fileInput" class="hidden" multiple>
+                <div class="flex items-center justify-center gap-0 w-full">
+                    <span class="material-icons text-indigo-500 text-4xl flex-shrink-0">upload_file</span>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-medium text-gray-800 truncate">Drag & drop files here</h3>
+                        <p class="text-sm text-gray-500 mt-1 truncate">or click to browse files</p>
+                    </div>
+                </div>
+            </button>
+            <div id="filesError" class="text-red-500 text-sm mb-3 hidden"></div>
+            </div>
+            
+            <!-- Selected Files -->
+            <div id="fileList" class="space-y-2 max-h-48 overflow-y-auto hidden">
+                <div id="filesContainer" class="space-y-2"></div>
+            </div>
+            
+            <!-- Upload Button -->
+            <button id="uploadBtn" type="button" onclick="submitForm(event)"
+                    class="w-full mt-6 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                <span id="uploadBtnText">Upload Files</span>
+                <span class="material-icons ml-2">send</span>
+            </button>
         </div>
+        
+        <!-- Upload Progress -->
+        <div id="uploadProgress" class="hidden p-6 border-t border-gray-200">
+            <div id="uploadHeader" class="flex items-center justify-between mb-2">
+                <div>
+                    <h3 class="font-medium text-gray-800">Uploading Files</h3>
+                </div>
+                <span id="progressPercent" class="text-sm font-medium text-indigo-600">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 overflow-hidden">
+                <div id="progressBar" class="progress-bar bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
 
-        <div class="row">
-          <div class="input-field col s6">
-            <button id="submit-btn" class="waves-effect waves-light btn submit-btn" type="submit" onclick="submitForm(); return false;">Submit</button>
-          </div>
+            <div id="uploadError" class="text-red-500 text-sm mb-3 hidden"></div>
+            
+            <div id="uploadStats" class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-gray-500">Files Uploaded</div>
+                    <div class="font-medium text-gray-800"><span id="uploadedFiles">0</span>/<span id="totalFiles">0</span></div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-gray-500">Total Size</div>
+                    <div id="totalSize" class="font-medium text-gray-800">0 MB</div>
+                </div>
+            </div>
+            
+            <div id="successState" class="hidden mt-6 text-center">
+                <button onclick="resetForm()" class="w-full px-6 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">
+                    Upload More Files
+                </button>
+            </div>
         </div>
-        <div class="row">
-          <div class="input-field col s12 hide" id="update">
-            <hr>
-            <p>
-              Please wait as your file is being uploaded. Do not close or refresh the window while uploading.
-            </p>
-          </div>
-        </div>
-        <div class="row">
-          <div class="input-field col s12" id="progress">
-          </div>
-        </div>
-      </div>
-      <div id="success" style="display:none">
-        <h5 class="left-align teal-text">File(s) Uploaded!</h5>
-        <p>Everything has been uploaded into your new Folder.</p>
-      </div>
-    </form>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js"></script>
-    <script src="https://gumroad.com/js/gumroad.js"></script>
+      </form>
 
     <script>
+        // DOM Elements
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const folderName = document.getElementById('folderName');
+        const fileList = document.getElementById('fileList');
+        const filesContainer = document.getElementById('filesContainer');
+        const forminner = document.getElementById('forminner');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const successMessage = document.getElementById('successMessage');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const filesUploaded = document.getElementById('filesUploaded');
+        const totalSize = document.getElementById('totalSize');
 
-      const chunkSize = 5242880;
-      const uploadParentFolderId = "1_fNwHfBj4IJu5_gkoz5JU3-9q73jhkjt"; // creates a folder inside of this folder
+        const chunkSize = 5242880;
+        const parentFolderId = "1_fNwHfBj4IJu5_gkoz5JU3-9q73jhkjt"; // creates a folder inside of this folder
+        childFolderId = ""; // upload files here once set by createFolder()
+        let currentLanguage = '';
 
-      function submitForm() {
+        let selectedFiles = [];
+        let totalFilesSize = 0;
+        let completedFilesCount = 0;
+        let fileProgress = [];
 
-        if ($('#submit-btn.disabled')[0]) return; // short circuit
-
-        var name = $('#name')[0].value;
-        var files = [...$('#files')[0].files]; // convert from FileList to array
-
-        // Error validation
-        if (!name || name.length < 1) {
-          showError("Please enter a folder Name");
-          return;
-        }
-        if (files.length === 0) {
-          showError("Please select a file to upload");
-          return;
-        }
-
-        disableForm(); // prevent re submission
-
-        // the map and reduce are here to ensure that only one file is uploaded at a time. This allows
-        // the promises to be run sequentially
-        files.map(file => uploadFilePromiseFactory(file))
-            .reduce((promiseChain, currentTask) => {
-              return promiseChain.then(currentTask);
-            }, Promise.resolve([])).then( () => {
-              console.log("Completed all files upload");
-              showSuccess();
-            });
-      }
-
-      function disableForm() {
-        $('#submit-btn').addClass('disabled');
-        $('#input-btn').addClass('disabled');
-        $('#update').removeClass('hide');
-      }
-
-      function uploadFilePromiseFactory(file) {
-        return () => {
-          console.log("Processing: ", file.name);
-          return new Promise((resolve, reject) => {
-
-            showProgressMessage("File being loaded by FileReader.");
-
-            var fr = new FileReader();
-            fr.fileName = file.name;
-            fr.fileSize = file.size;
-            fr.fileType = file.type;
-            fr.fileLastModified = file.lastModified;
-            // not sure of a better way of passing the promise functions down
-            fr.resolve = () => resolve();
-            fr.reject = (error) => reject(error);
-            fr.onload = onFileReaderLoad;
-            fr.readAsArrayBuffer(file);
-          });
-        };
-      }
-      
-      /**
-       * Gets called once the browser has loaded a file. The main logic that creates a folder
-       * and initiates the file upload resides here
-       */
-      function onFileReaderLoad(onLoadEvent) {
-        var fr = this;
-
-        var newFolderName = $('#name')[0].value;
-        createOrGetFolder(newFolderName, uploadParentFolderId).then(newFolderId => {
-          console.log("Found or created guest folder with id: ", newFolderId);
-          uploadFileToDriveFolder.call(fr, newFolderId).then(() => {
-              fr.resolve();
-            }, (error) => {
-              fr.reject(error);
-            });
-          },
-          (error) => {
-            if (error) {
-              showError(error.toString());
-            }
-            console.log("onFileReaderLoad Error2: ", error);
-          });
-
-      }
-
-      /**
-       * call to the DriveApp api. Wrapped in a promise in case I want to address timing issues between a
-       * createFolder and findFolderById
-       */
-      function createOrGetFolder(folderName, parentFolderId) {
-        return new Promise((resolve, reject) => {
-          google.script.run.withSuccessHandler(response => {
-            console.log("createOrGetFolder response: ", response);
-            if (response && response.length) {
-              resolve(response);
-            }
-            reject(response);
-          }).createOrGetFolder(folderName, parentFolderId);
+        /**
+         * Events reseting previously shown errors
+         */
+        dropzone.addEventListener('click', () => fileInput.click());
+        folderName.addEventListener('input', () => {
+            document.getElementById('folderError').classList.add('hidden');
         });
-      }
+        
+        /*************** Begin of events regarding adding files ****************/
 
-      /**
-      * Helper functions modified from:
-      * https://github.com/tanaikech/Resumable_Upload_For_WebApps
-      */
-      function uploadFileToDriveFolder(parentFolderId) {
-        var fr = this;
-        return new Promise((resolve, reject) => {
-          var fileName = fr.fileName;
-          var fileSize = fr.fileSize;
-          var fileType = fr.fileType;
-          var fileLastModified = fr.fileLastModified;
-          const date = new Date(fileLastModified);
-          const isoString = date.toISOString();
-          console.log({fileName: fileName, fileSize: fileSize, fileType: fileType, fileLastModified: fileLastModified, isoString: isoString});
-          var buf = fr.result;
-          var chunkpot = getChunkpot(chunkSize, fileSize);
-          var uint8Array = new Uint8Array(buf);
-          var chunks = chunkpot.chunks.map(function(e) {
-            return {
-               data: uint8Array.slice(e.startByte, e.endByte + 1),
-               length: e.numByte,
-               range: "bytes " + e.startByte + "-" + e.endByte + "/" + chunkpot.total,
-            };
-          });
-          google.script.run.withSuccessHandler(oAuthToken => {
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable");
-            xhr.setRequestHeader('Authorization', "Bearer " + oAuthToken);
-            xhr.setRequestHeader('Content-Type', "application/json");
-            xhr.send(JSON.stringify({
-              mimeType: fileType,
-              name: fileName,
-              modifiedTime: isoString,
-              parents: [parentFolderId]
-            }));
-            xhr.onload = () => {
-              doUpload(fileName, {
-                location: xhr.getResponseHeader("location"),
-                chunks: chunks,
-              }).then(success => {
-                resolve(success);
-                console.log("Successfully uploaded: ", fileName);
-              },
-              error => {
-                reject(error);
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, unhighlight, false);
+        });
+
+        dropzone.addEventListener('drop', handleDrop, false);
+
+        function highlight() {
+            dropzone.classList.add('active');
+        }
+
+        function unhighlight() {
+            dropzone.classList.remove('active');
+        }
+
+        function handleDrop(event) {
+            const dt = event.dataTransfer;
+            const files = dt.files;
+            addFiles(files);
+        }
+
+        function handleFileSelect(event) {
+            addFiles(event.target.files);
+        }
+        
+        /*************** End of events regarding adding files ****************/
+
+        /**
+         * Adds one or multiple files to selectedFiles
+         */
+        function addFiles(files) {
+            selectedFiles = Array.from(files);
+            totalFilesSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+            
+            updateFileList();
+            updateTotalSize();
+            
+            if (selectedFiles.length > 0) {
+                fileList.classList.remove('hidden');
+                document.getElementById('filesError').classList.add('hidden');
+            }
+        }
+
+        /**
+         * Updates the file preview list based on current state of selectedFiles
+         */
+        function updateFileList() {
+            filesContainer.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'file-item flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition';
+                
+                fileElement.innerHTML = `
+                    <div class="flex items-center truncate">
+                        <span class="material-icons text-gray-500 mr-2 text-base">${getFileIcon(file.type)}</span>
+                        <span class="truncate text-sm text-gray-700">${file.name}</span>
+                    </div>
+                    <div class="file-actions opacity-0 flex items-center transition whitespace-nowrap">
+                        <span class="text-xs text-gray-500 mr-2">${formatFileSize(file.size)}</span>
+                        <button onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 transition">
+                            <span class="material-icons text-base">close</span>
+                        </button>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded-b-lg overflow-hidden">
+                        <div id="file-progress-${index}" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                `;
+                fileElement.className = 'file-item flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition relative';
+                
+                filesContainer.appendChild(fileElement);
+            });
+        }
+
+        /**
+         * Remove a file from seelectedFiles
+         */
+        function removeFile(index) {
+            totalFilesSize -= selectedFiles[index].size;
+            selectedFiles.splice(index, 1);
+            
+            if (selectedFiles.length === 0) {
+                fileList.classList.add('hidden');
+            } else {
+                updateFileList();
+            }
+            
+            updateTotalSize();
+        }
+
+        /**
+         * Provide a icon based on file type
+         * RegEx expression encoded as Base64 because of issues with Google script host 
+         */
+        function getFileIcon(type) {
+            if (type.match(new RegExp(atob('aW1hZ2VcLyo=')))) return 'image';
+            if (type.match(new RegExp(atob('dmlkZW9cLyo=')))) return 'videocam';
+            if (type.match(new RegExp(atob('YXVkaW9cLyo=')))) return 'audiotrack';
+            if (type.match(new RegExp(atob('cGRmXC8q')))) return 'picture_as_pdf';
+            if (type.match(new RegExp(atob('dGV4dFwvKg==')))) return 'description';
+            if (type.match(new RegExp(atob('emlwXC8q'))) || type.match(new RegExp(atob('Y29tcHJlc3NlZFwvKg==')))) return 'folder_zip';
+            return 'insert_drive_file';
+        }
+
+        /**
+         * Return a written format of a byte amount
+         */
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        /**
+         * Function to update the overall total size value
+         */
+        function updateTotalSize() {
+            totalSize.textContent = formatFileSize(totalFilesSize);
+        }
+
+        /**
+         * make prechecks
+         * "switch" to upload screen
+         * start upload
+         */
+        async function submitForm(event) {
+            event.preventDefault();
+            
+            // Clear any existing errors
+            document.getElementById('folderError').classList.add('hidden');
+            document.getElementById('filesError').classList.add('hidden');
+            
+            let hasErrors = false;
+            
+            // Validate form
+            if (!folderName.value.trim()) {
+                showError("folderError");
+                hasErrors = true;
+            }
+            
+            if (selectedFiles.length === 0) {
+                showError("filesError");
+                hasErrors = true;
+            }
+            
+            if (hasErrors) return;
+            
+            // Disable form and hide file selection/delete buttons and upload button
+            uploadBtn.classList.add('hidden');
+            document.getElementById('folderInput').classList.add('hidden');
+            document.getElementById('dropzone').classList.add('hidden');
+            document.querySelectorAll('.file-actions button').forEach(btn => {
+                btn.disabled = true;
+                btn.style.display = 'none';
+            });
+            
+            // Show progress
+            uploadProgress.classList.remove('hidden');
+            completedFilesCount = 0;
+            fileProgress = [];
+
+            // Update initial stats
+            document.getElementById('uploadedFiles').textContent = '0';
+            document.getElementById('totalFiles').textContent = selectedFiles.length;
+            
+            try {
+              createFolderAndUpload(folderName, parentFolderId);
+            } catch (error) {
+                console.error(error);
+                showError("uploadError");
+                resetForm();
+            }
+        }
+
+        /**
+         * Call to the DriveApp api and create new folder.
+         * After that call upload()
+         */
+        function createFolderAndUpload(folderName, parentFolderId) {
+          var folderName = document.getElementById('folderName').value;
+          google.script.run.withSuccessHandler(
+            response => {
+            childFolderId = response; // childFolderId is global and available to other functions
+            upload();
+            }
+          ).createFolder(folderName, parentFolderId);
+        }
+
+        /**
+         * Function preparing and precessing details of the upload
+         * Called by createFolderAndUpload()
+         */
+        function upload(accessToken) {
+          google.script.run.withSuccessHandler(accessToken => {
+            try {
+              selectedFiles.forEach((file, i) => {
+                let fileReader = new FileReader();
+                fileReader.fileName = file.name;
+                fileReader.fileSize = file.size;
+                fileReader.fileType = file.type;
+                var fileLastModified = fileReader.fileLastModified;
+                //const date = new Date(fileLastModified);
+                //const isoString = date.toISOString();
+                fileReader.readAsArrayBuffer(file);
+                fileReader.onload = event => {
+                  var index = i;
+                  fileProgress[index] = 0;
+                  const f = event.target;
+                  const resource = {
+                    fileName: f.fileName,
+                    fileSize: f.fileSize,
+                    fileType: f.fileType,
+                    folderId: childFolderId,
+                    fileBuffer: f.result,
+                    accessToken: accessToken
+                  };
+                  // Provided by the imported script library
+                  const resumableUpload = new ResumableUploadToGoogleDrive();
+                  resumableUpload.Do(resource, function(res, err) {
+                    if (err) {
+                      console.error(err);
+                      showError("uploadError");
+                      return;
+                    }
+
+                    console.log(res);
+                    
+                    if (res.status == "Uploading") {
+                      fileProgress[index] = Math.round(
+                        (res.progressNumber.current / res.progressNumber.end) * 100
+                      );
+                    }
+
+                    if (res.status == "Done") {
+                      fileProgress[index] = 100;
+                    }
+                          
+                    // Update UI
+                    document.getElementById(`file-progress-${index}`).style.width = `${fileProgress[index]}%`;
+                    
+                    const totalProgress = fileProgress.reduce((sum, p) => sum + p, 0);
+                    const overallProgress = Math.floor(totalProgress / selectedFiles.length);
+                    if (overallProgress >= 100) {
+                      document.getElementById('successState').classList.remove('hidden');
+                    }
+                    progressBar.style.width = `${overallProgress}%`;
+                    progressPercent.textContent = `${overallProgress}%`;
+                    
+                    if (fileProgress[index] >= 100) {
+                        completedFilesCount++;
+                        document.getElementById('uploadedFiles').textContent = completedFilesCount;
+                    }
+                  });
+                };
               });
-            };
 
-            xhr.onerror = () => {
-              console.log("ERROR: ", xhr.response);
-              reject(xhr.response);
-            };
-          }).getOAuthToken();
-        });
-      }
-
-      function showSuccess() {
-        $('#forminner').hide();
-        $('#success').show();
-      }
-
-      function showError(e) {
-        $('#progress').addClass('red-text').html(e);
-      }
-
-      function showMessage(e) {
-        $('#update').html(e);
-      }
-
-      function showProgressMessage(e) {
-        $('#progress').removeClass('red-text').html(e);
-      }
-
-      /**
-      * Helper functions modified from:
-      * https://github.com/tanaikech/Resumable_Upload_For_WebApps
-      */
-      function doUpload(fileName, e) {
-        return new Promise((resolve, reject) => {
-          showProgressMessage(fileName + ": Uploading: 0%");
-          var chunks = e.chunks;
-          var location = e.location;
-          var cnt = 0;
-          var end = chunks.length;
-          var temp = function callback(cnt) {
-            var e = chunks[cnt];
-            var xhr = new XMLHttpRequest();
-            xhr.open("PUT", location, true);
-            console.log("content range: ", e.range);
-            xhr.setRequestHeader('Content-Range', e.range);
-            xhr.send(e.data);
-            xhr.onloadend = function() {
-                var status = xhr.status;
-                cnt += 1;
-                console.log("Uploading: " + status + " (" + cnt + " / " + end + ")");
-                showProgressMessage(fileName + ": Uploading: " + Math.floor(100 * cnt / end) + "%");
-                if (status == 308) {
-                    callback(cnt);
-                } else if (status == 200) {
-                    $("#progress").text("Done.");
-                    resolve();
-                } else {
-                    $("#progress").text("Error: " + xhr.response);
-                    reject();
-                }
-            };
-          }(cnt);
-        });
-      }
-
-      /**
-      * Helper functions modified from:
-      * https://github.com/tanaikech/Resumable_Upload_For_WebApps
-      */
-      function getChunkpot(chunkSize, fileSize) {
-        var chunkPot = {};
-        chunkPot.total = fileSize;
-        chunkPot.chunks = [];
-        if (fileSize > chunkSize) {
-            var numE = chunkSize;
-            var endS = function(f, n) {
-                var c = f % n;
-                if (c == 0) {
-                    return 0;
-                } else {
-                    return c;
-                }
-            }(fileSize, numE);
-            var repeat = Math.floor(fileSize / numE);
-            for (var i = 0; i <= repeat; i++) {
-                var startAddress = i * numE;
-                var c = {};
-                c.startByte = startAddress;
-                if (i < repeat) {
-                    c.endByte = startAddress + numE - 1;
-                    c.numByte = numE;
-                    chunkPot.chunks.push(c);
-                } else if (i == repeat && endS > 0) {
-                    c.endByte = startAddress + endS - 1;
-                    c.numByte = endS;
-                    chunkPot.chunks.push(c);
-                }
+            } catch (error) {
+              console.error(error);
+              document.getElementById('successState').classList.remove('hidden');
+              showError("uploadError");
             }
-        } else {
-            var chunk = {
-                startByte: 0,
-                endByte: fileSize - 1,
-                numByte: fileSize,
-            };
-            chunkPot.chunks.push(chunk);
+          }).getOAuthToken();
         }
-        return chunkPot;
-      }
 
+        /**
+         * Function shows respective error types
+         */
+        function showError(errorType) {
+            // Show error under the appropriate field
+            if (errorType == "folderError") {
+                const folderError = document.getElementById('folderError');
+                folderError.textContent = translations[currentLanguage].errorNoFolder;
+                folderError.classList.remove('hidden');
+            } else if (errorType == "filesError") {
+                const filesError = document.getElementById('filesError');
+                filesError.textContent = translations[currentLanguage].errorNoFiles;
+                filesError.classList.remove('hidden');
+            } else if (errorType == "uploadError") {
+                const uploadError = document.getElementById('uploadError');
+                uploadError.textContent = translations[currentLanguage].errorUpload;
+                uploadError.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Function resets form into its intial state
+         */
+        function resetForm() {
+            // Reset form and clear errors
+            folderName.value = '';
+            document.getElementById('folderError').textContent = translations[currentLanguage].errorNoFolder;
+            document.getElementById('folderError').classList.add('hidden');
+            document.getElementById('filesError').textContent = translations[currentLanguage].errorNoFiles;
+            document.getElementById('filesError').classList.add('hidden');
+            document.getElementById('uploadError').textContent = translations[currentLanguage].errorUpload;
+            document.getElementById('uploadError').classList.add('hidden');
+            selectedFiles = [];
+            totalFilesSize = 0;
+            fileProgress = [];
+            fileInput.value = '';
+            filesContainer.innerHTML = '';
+            document.querySelectorAll('[id^="file-progress-"]').forEach(el => {
+                el.style.width = '0%';
+            });
+            fileList.classList.add('hidden');
+            // Reset progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = '0%';
+            progressBar.classList.remove('bg-green-500');
+            progressBar.classList.add('bg-indigo-600');
+            document.getElementById('progressPercent').textContent = '0%';
+            completedFilesCount = 0;
+            totalSize.textContent = '0 MB';
+            
+            // Reset progress UI
+            document.getElementById('uploadHeader').classList.remove('hidden');
+            document.getElementById('progressBar').classList.remove('hidden');
+            document.getElementById('uploadStats').classList.remove('hidden');
+            document.getElementById('successState').classList.add('hidden');
+            
+            // Show form again
+            uploadProgress.classList.add('hidden');
+            forminner.classList.remove('hidden');
+            uploadBtn.classList.remove('hidden');
+            document.getElementById('folderInput').classList.remove('hidden');
+            document.getElementById('dropzone').classList.remove('hidden');
+            uploadBtn.disabled = false;
+            
+            // Restore file actions
+            document.querySelectorAll('.file-actions button').forEach(btn => {
+                btn.disabled = false;
+                btn.style.display = '';
+            });
+        }
+
+        /**
+         * Variable holds all translations for german and english 
+         */
+        const translations = {
+            de: {
+                title: "Drive Mutli Upload",
+                subtitle: "Dateien in Google Drive hochladen",
+                folderName: "Ordnername",
+                folderPlaceholder: "Ordnernamen eingeben",
+                dropzoneTitle: "Dateien hier ablegen",
+                dropzoneSubtitle: "oder klicken, um Dateien auszuwählen",
+                browseBtn: "Dateien auswählen",
+                selectedFiles: "Ausgewählte Dateien",
+                uploadBtn: "Dateien hochladen",
+                uploadingFiles: "Dateien hochladen",
+                filesUploaded: "Hochgeladene Dateien",
+                totalSize: "Gesamtgröße",
+                uploadMore: "Weitere Dateien hochladen",
+                errorNoFolder: "Bitte geben Sie einen Ordnernamen ein",
+                errorNoFiles: "Bitte wählen Sie mindestens eine Datei aus",
+                errorUpload: "Fehler beim Hochladen"
+            },
+            en: {
+                title: "Drive Mutli Upload",
+                subtitle: "Upload files to Google Drive",
+                folderName: "Folder Name",
+                folderPlaceholder: "Enter folder name",
+                dropzoneTitle: "Drag & drop files here",
+                dropzoneSubtitle: "or click to browse files",
+                browseBtn: "Select Files",
+                selectedFiles: "Selected Files",
+                uploadBtn: "Upload Files",
+                uploadingFiles: "Uploading Files",
+                filesUploaded: "Files Uploaded",
+                totalSize: "Total Size",
+                uploadMore: "Upload More Files",
+                errorNoFolder: "Please enter a folder name",
+                errorNoFiles: "Please select at least one file to upload",
+                errorUpload: "Upload Error"
+            }
+        };
+
+        /**
+         * Function updates all strings based on the current language selected
+         */
+        function updateTexts() {
+            const translation = translations[currentLanguage];
+            // Update header texts
+            document.querySelector('h1').textContent = translation.title;
+            document.querySelector('p.text-indigo-100').textContent = translation.subtitle;
+            
+            // Update form elements
+            document.getElementById('folderName').placeholder = translation.folderPlaceholder;
+            document.querySelector('#dropzone h3').textContent = translation.dropzoneTitle;
+            document.querySelector('#dropzone p').textContent = translation.dropzoneSubtitle;
+            document.getElementById('uploadBtnText').textContent = translation.uploadBtn;
+            
+            // Update progress section
+            document.querySelector('#uploadHeader h3').textContent = translation.uploadingFiles;
+            document.querySelector('#uploadStats div:first-child div:first-child').textContent = translation.filesUploaded;
+            document.querySelector('#uploadStats div:last-child div:first-child').textContent = translation.totalSize;
+            document.querySelector('#successState button').textContent = translation.uploadMore;
+            
+            // Update error messages
+            document.getElementById('folderError').textContent = translation.errorNoFolder;
+            document.getElementById('filesError').textContent = translation.errorNoFiles;
+            document.getElementById('uploadError').textContent = translation.errorUpload;
+        }
+
+        /**
+         * Function toggles current language between english and german
+         */
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
+            document.documentElement.lang = currentLanguage;
+            
+            // Update toggle container class for animation
+            const container = document.querySelector('.lang-toggle-container');
+            container.classList.toggle('en');
+            
+            updateTexts();
+        }
+
+        // Initialize with German
+        toggleLanguage();
     </script>
-
-  </body>
-
+</body>
 </html>
