@@ -51,7 +51,6 @@
             background-color: rgba(255,255,255,0.2);
             border-radius: 8px;
             cursor: pointer;
-            overflow: hidden;
         }
         .lang-toggle-container::after {
             content: '';
@@ -81,6 +80,7 @@
             z-index: 1;
             background: transparent;
             transition: color 0.3s ease;
+            top: 0;
         }
         .lang-button.active {
             color: #4f46e5;
@@ -109,10 +109,10 @@
                     <h1 class="text-2xl font-semibold">Drive Mutli Upload</h1>
                     <p class="text-indigo-100 text-sm mt-1">Upload files to Google Drive</p>
                 </div>
-                <div class="lang-toggle-container en" onclick="toggleLanguage()">
-                    <button id="langDE" class="lang-button active hovered-element">🇩🇪</button>
-                    <button id="langEN" class="lang-button inactive hovered-element">🇬🇧</button>
-                </div>
+                <button class="lang-toggle-container en" onclick="toggleLanguage()" type="button">
+                    <div id="langDE" class="lang-button">🇩🇪</div>
+                    <div id="langEN" class="lang-button">🇬🇧</div>
+                </button>
             </div>
         </div>
         
@@ -120,7 +120,7 @@
         <div class="p-6" id="forminner">
             <div class="mb-6" id="folderInput">
                 <div class="relative">
-                    <input type="text" id="folderName" required
+                    <input type="text" id="folderName"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                            placeholder="Enter folder name">
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -219,14 +219,15 @@
         let fileProgress = [];
 
         /**
-         * Events reseting previously shown errors
+         * Event reseting previously shown error
          */
-        dropzone.addEventListener('click', () => fileInput.click());
         folderName.addEventListener('input', () => {
             document.getElementById('folderError').classList.add('hidden');
         });
         
         /*************** Begin of events regarding adding files ****************/
+
+        dropzone.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', handleFileSelect);
         
