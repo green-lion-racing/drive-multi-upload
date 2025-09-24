@@ -2,10 +2,14 @@
 Upload multiple large files to Google Drive using Google Apps Script.  
 Now also with a nice UI. :)
 
+> [!CAUTION]
+> Using the script in it's current state, you are exposing your Google Drive oAuth key to every user.
+> Meaning everyone who has access to a deployment of this script has full access to read, change and delete all of your Google Drive files.
+
 ## Overview
 This is a form that will take a folder name, create that folder under a hardcoded parent folder, and upload 1 or more large files (> 50 MB). The form uses Google Apps Script (GAS), in order to interface with google drive's api.
 
-![](img/overview.png)
+![Overview](img/overview.png)
 
 ## Description
 This form came from a need to provide an easy way for someone to upload large files to google drive via a simple interface accessible on any device. Originally I was creating files using the Google Drive DriveApp api but quickly realized that uploading larger files was not supported. It looked like the resumable upload option is what I wanted. I found some closely linked resources, but those examples would only upload one file at a time. This solution will upload multiple files simultaneously and put them in a new folder in the provided parent folder. The code uses the Google Drive DriveApp api to get an oAuth token, and to create the folders in the right place. Here are the general steps of the code:
