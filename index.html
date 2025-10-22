@@ -15,7 +15,7 @@
         ResumableUploadToGoogleDrive = (function() {
           function ResumableUploadToGoogleDrive() {
             this.obj = {};
-            this.chunkSize = 262144; // must be higher or equal 262144, in best case a multiple of it
+            this.chunkSize = 5242880; // must be higher or equal 262144, in best case a multiple of it
             this.partsOfChunks = 10;
             this.endpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true";
           }
